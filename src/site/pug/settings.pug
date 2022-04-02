@@ -31,7 +31,7 @@ mixin select(id, description, disabled, options)
 				option(value=option.value selected=(option.value === settings[id]))= option.text
 
 doctype html
-html(dir=ll.meta_direction)
+html(dir=ll.meta_direction, lang=settings.language)
 	head
 		title= `${ll.t_settings} | Bibliogram`
 		include includes/head
@@ -61,7 +61,8 @@ html(dir=ll.meta_direction)
 						{value: "ms", text: "Bahasa Melayu"},
 						{value: "pl", text: "Polski"},
 						{value: "ru", text: "Русский"},
-						{value: "tr", text: "Türkçe"}
+						{value: "tr", text: "Türkçe"},
+						{value: "uk", text: "Українська"}
 					])
 
 					+select("save_data", ll.save_data, true, [

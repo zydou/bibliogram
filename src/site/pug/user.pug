@@ -74,7 +74,7 @@ html
 						if selectedTimeline.entryCount != undefined
 							div.profile-counter
 								| #[span(data-numberformat=selectedTimeline.entryCount).count #{numberFormat(selectedTimeline.entryCount)} ]
-								= ll.post_counter_label
+								= ll.fn_post_counter_label ? ll.fn_post_counter_label(selectedTimeline.entryCount) : ll.post_counter_label
 						if followerCountsAvailable
 							if user.following != undefined
 								div.profile-counter

@@ -8,8 +8,14 @@ $theme: () !default
 	font-display: swap
 	src: url(/static/fonts/bariol.woff2) format("woff2"), url(/static/fonts/bariol.ttf) format("truetype")
 
-body, input, button, textarea
+body
 	font-family: "Bariol", sans-serif
+
+[lang="uk"] body // consistent cyrillic
+	font-family: "Cantarell", sans-serif
+
+input, button, textarea
+	font-family: inherit
 
 summary
 	text-decoration: underline
