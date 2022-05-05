@@ -37,7 +37,7 @@ html
 		meta(property="og:image:type" content="image/jpeg")
 		meta(property="og:site_name" content="Bibliogram")
 
-	body
+	body(class={"use-boring-font": !user.bioIsLatin()})
 		nav(class=(settings.display_top_nav ? "always-displayed" : "")).top-nav
 			//- Alt text guidelines from https://axesslab.com/alt-texts/
 			a(href="/").nav-icon-link

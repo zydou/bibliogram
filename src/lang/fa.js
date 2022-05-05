@@ -5,6 +5,7 @@ if (!constants.language_dev) Object.assign(data, require("./en.js"))
 
 ;(() => {
 	data.meta_direction = "rtl"
+	data.meta_use_boring_font = true
 
 	data.go_to_profile = "برو به نمایه"
 	data.go_to_post = "برو به پست"

@@ -7,7 +7,7 @@ html(lang=settings.language)
 	head
 		title Bibliogram
 		include includes/head
-	body.homepage
+	body.homepage(class={"use-boring-font": ll.meta_use_boring_font})
 		header
 			h1.banner
 				img.banner-image(src="/static/img/banner-min.svg" alt="Bibliogram")

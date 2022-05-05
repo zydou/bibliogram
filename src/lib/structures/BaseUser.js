@@ -1,6 +1,7 @@
 const constants = require("../constants")
 const {proxyProfilePic} = require("../utils/proxyurl")
 const {structure} = require("../utils/structuretext")
+const {isLatin} = require("../utils/islatin")
 
 const rewriters = {
 	rewrite_youtube: ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"],
@@ -50,6 +51,11 @@ class BaseUser {
 	getStructuredBio() {
 		if (!this.data.biography) return null
 		return structure(this.data.biography)
+	}
+
+	bioIsLatin() {
+		if (typeof this.data.biography !== "string") return true
+		return isLatin(this.data.biography)
 	}
 
 	getTtl(scale = 1) {

@@ -46,6 +46,6 @@ html
 			meta(property="og:image:alt" content=firstEntry.getAlt())
 		meta(property="og:site_name" content="Bibliogram")
 
-	body.post-page
+	body.post-page(class={"use-boring-font": !post.captionIsLatin()})
 		main
 			+post(post, false)

@@ -5,6 +5,7 @@ if (!constants.language_dev) Object.assign(data, require("./en.js"))
 
 ;(() => {
 	data.meta_direction = "ltr"
+	data.meta_use_boring_font = true
 
 	data.go_to_profile = "Перейти до профілю"
 	data.go_to_post = "Перейти до допису"

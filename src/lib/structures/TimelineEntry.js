@@ -5,6 +5,7 @@ const collectors = require("../collectors")
 const {structure, removeTrailingHashtags} = require("../utils/structuretext")
 const TimelineBaseMethods = require("./TimelineBaseMethods")
 const TimelineChild = require("./TimelineChild")
+const {isLatin} = require("../utils/islatin")
 require("../testimports")(collectors, TimelineChild, TimelineBaseMethods)
 
 const rssDescriptionTemplate = compile(`
@@ -136,6 +137,13 @@ class TimelineEntry extends TimelineBaseMethods {
 		const caption = this.getCaption()
 		if (!caption) return null
 		else return caption.split("\n")[0].split(". ")[0]
+	}
+
+	captionIsLatin() {
+		// the caption introduction is likely to be more meaningful for analysis than the full caption.
+		const introduction = this.getCaptionIntroduction()
+		if (typeof introduction !== "string") return true
+		return isLatin(introduction)
 	}
 
 	/**

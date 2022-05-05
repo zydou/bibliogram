@@ -11,8 +11,10 @@ $theme: () !default
 body
 	font-family: "Bariol", sans-serif
 
-[lang="uk"] body // consistent cyrillic
-	font-family: "Cantarell", sans-serif
+body.use-boring-font
+	// this is useful so that cyrillic and other scripts don't look conspicuous compared to nearby latin letters.
+	// the use-boring-font class is activated based on the page and heuristics of its contents
+	font-family: sans-serif
 
 input, button, textarea
 	font-family: inherit

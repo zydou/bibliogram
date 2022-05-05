@@ -36,7 +36,7 @@ html(dir=ll.meta_direction, lang=settings.language)
 		title= `${ll.t_settings} | Bibliogram`
 		include includes/head
 		script(src=getStaticURL("html", "/static/js/settings_message.js") type="module")
-	body.settings-page
+	body.settings-page(class={"use-boring-font": ll.meta_use_boring_font})
 		if status && message
 			.status-notice(class=status)= message
 		main.settings
