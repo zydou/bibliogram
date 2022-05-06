@@ -5,8 +5,16 @@ $theme: () !default
 
 @font-face
 	font-family: "Bariol"
-	font-display: swap
+	font-display: swap // prefer a fallback font until the font file is loaded
 	src: url(/static/fonts/bariol.woff2) format("woff2"), url(/static/fonts/bariol.ttf) format("truetype")
+
+@each $weight in normal, bold
+	@font-face
+		font-family: "Cantarell"
+		font-weight: $weight
+		src: url(/static/fonts/cantarell-#{$weight}.woff2) format("woff2"), url(/static/fonts/cantarell-#{$weight}.ttf) format("truetype")
+		font-display: swap // prefer a fallback font until the font file is loaded
+		unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD // from google fonts definition, https://fonts.googleapis.com/css2?family=Cantarell
 
 body
 	font-family: "Bariol", sans-serif
@@ -14,7 +22,7 @@ body
 body.use-boring-font
 	// this is useful so that cyrillic and other scripts don't look conspicuous compared to nearby latin letters.
 	// the use-boring-font class is activated based on the page and heuristics of its contents
-	font-family: sans-serif
+	font-family: "Cantarell", sans-serif
 
 input, button, textarea
 	font-family: inherit
@@ -34,7 +42,7 @@ body
 
 	@media screen and (min-width: $layout-b-min)
 		display: grid
-		grid-template-columns: 235px 1fr
+		grid-template-columns: 250px 1fr
 
 .pfp
 	border-radius: 50%
