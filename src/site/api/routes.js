@@ -13,6 +13,16 @@ function getPageTitle(post) {
 	return (post.getCaptionIntroduction() || `Post from @${post.getBasicOwner().username}`) + " | Bibliogram"
 }
 
+async function getUserAndQuota(req, username) {
+	if (quota.remaining(req) === 0) {
+		throw constants.symbols.QUOTA_REACHED
+	}
+
+	const {user, quotaUsed} = await fetchUser(username)
+	const remaining = quota.add(req, quotaUsed)
+	return {user, remaining}
+}
+
 function getPostAndQuota(req, shortcode) {
 	if (quota.remaining(req) === 0) {
 		throw constants.symbols.QUOTA_REACHED
@@ -101,8 +111,7 @@ module.exports = [
 					throw constants.symbols.QUOTA_REACHED
 				}
 
-				const {user, quotaUsed} = await fetchUser(username)
-				let remaining = quota.add(req, quotaUsed)
+				let {user, remaining} = await getUserAndQuota(req, username)
 
 				const selectedTimeline = user[type]
 				let pageNumber = +params.get("page")

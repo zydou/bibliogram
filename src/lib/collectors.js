@@ -96,7 +96,9 @@ function fetchUserFromHTML(username) {
 			}
 		}
 	}
+	let quotaUsed = 0
 	return userRequestCache.getOrFetch("user/"+username, false, true, () => {
+		quotaUsed++
 		return switcher.request("user_html", `https://www.instagram.com/${username}/feed/`, async res => {
 			if (res.status === 301) throw constants.symbols.ENDPOINT_OVERRIDDEN
 			if (res.status === 302) throw constants.symbols.INSTAGRAM_DEMANDS_LOGIN
@@ -153,7 +155,7 @@ function fetchUserFromHTML(username) {
 			}
 			throw error
 		})
-	}).then(user => ({user, quotaUsed: 0}))
+	}).then(user => ({user, quotaUsed}))
 }
 
 /**
