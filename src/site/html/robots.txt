@@ -1,5 +1,7 @@
 User-Agent: *
 Disallow: /u/
 Disallow: /p/
+Disallow: /tv/
+Disallow: /reel/
 Disallow: /fragment/
 Disallow: /api/
