@@ -13,12 +13,12 @@ p(style="white-space: pre-line") #{message}#[a(href=link)= link]
 function respondWithFeed(feed, kind, maxAge, available) {
 	if (kind === "rss") {
 		var data = {
-			contentType: "application/rss+xml", // see https://stackoverflow.com/questions/595616/what-is-the-correct-mime-type-to-use-for-an-rss-feed,
+			contentType: "application/rss+xml; charset=utf-8", // see https://stackoverflow.com/questions/595616/what-is-the-correct-mime-type-to-use-for-an-rss-feed,
 			content: feed.rss2()
 		}
 	} else if (kind === "atom") {
 		var data = {
-			contentType: "application/atom+xml", // see https://en.wikipedia.org/wiki/Atom_(standard)#Including_in_HTML
+			contentType: "application/atom+xml; charset=utf-8", // see https://en.wikipedia.org/wiki/Atom_(standard)#Including_in_HTML
 			content: feed.atom1()
 		}
 	}
