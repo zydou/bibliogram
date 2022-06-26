@@ -85,6 +85,10 @@ class TimelineEntry extends TimelineBaseMethods {
 	 * @param {import("../types").TimelineEntryN3} data
 	 */
 	applyN3(data) {
+		// don't apply null fields from the update over real data. this didn't used to happen, but it can happen now with a co-authored post since those have an incomplete author (triggering the update) and are no longer fetched from real N3
+		for (const key of Object.keys(data)) {
+			if (this.data[key] != null && data[key] == null) delete data[key]
+		}
 		Object.assign(this.data, data)
 		this.fixData()
 	}
