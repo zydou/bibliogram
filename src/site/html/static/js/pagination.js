@@ -47,11 +47,14 @@ class NextPage extends FreezeWidth {
 		this.controller = controller
 		this.clicked = false
 		this.nextPageNumber = +this.element.getAttribute("data-page")
+		this.auto = this.element.getAttribute("data-auto")
 		this.attribute("href", "javascript:void(0)")
 		this.event("click", event => this.onClick(event))
 
 		this.observer = new IntersectionObserver(entries => this.onIntersect(entries), {rootMargin: "0px", threshold: intersectionThreshold})
-		this.observer.observe(this.element)
+		if (this.auto !== "off") {
+			this.observer.observe(this.element)
+		}
 	}
 
 	onClick(event) {

@@ -41,7 +41,7 @@ let constants = {
 	// change this to `true` to serve it, which will make extensions like Privacy Badger automatically whitelist the domain.
 	does_not_track: false,
 
-	allow_user_from_reel: "fallback", // one of: "never", "fallback", "prefer", "onlyPreferSaved", "preferForRSS"
+	allow_user_from_reel: "iweb", // legacy. this must be "iweb" now.
 	proxy_media: { // Whether to proxy media (images, videos, thumbnails) through Bibliogram. This is strongly recommended to protect user privacy. If proxy is turned off, some browser content blockers may break all images since they are served from Facebook domains.
 		image: true,
 		video: true,
@@ -155,7 +155,7 @@ let constants = {
 			replaceEmptyWithDefault: false
 		},{
 			name: "infinite_scroll",
-			default: "normal",
+			default: "off",
 			boolean: false,
 			replaceEmptyWithDefault: true
 		},{
@@ -239,7 +239,7 @@ let constants = {
 	// Instagram uses this stuff. This shouldn't be changed, except to fix a bug that hasn't yet been fixed upstream.
 	external: {
 		reel_query_hash: "c9100bf9110dd6361671f113dd02e7d6",
-		timeline_query_hash: "e769aa130647d2354c40ea6a439bfc08",
+		timeline_query_hash: "69cba40317214236af40e7efa697781d",
 		timeline_query_hash_2: "42323d64886122307be10013ad2dcc44", // https://github.com/rarcega/instagram-scraper/blob/dc022081dbefc81500c5f70cce5c70cfd2816e3c/instagram_scraper/constants.py#L30
 		shortcode_query_hash: "2b0673e0dc4580674a88d426fe00ea90",
 		igtv_query_hash: "bc78b344a68ed16dd5d7f264681c4c76",

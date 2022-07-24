@@ -10,6 +10,7 @@ mixin next_page_button(user, selectedTimeline, url, type)
 				data-username=(user.data.username)
 				data-type=type
 				data-loading-text=ll.next_page_button_loading
+				data-auto=settings.infinite_scroll
 			)#next-page.next-page= ll.next_page_button
 	else
 		div

@@ -28,65 +28,18 @@ async function fetchUser(username, context) {
 	}
 
 	let mode = constants.allow_user_from_reel
-	if (mode === "preferForRSS") {
-		if (context === constants.symbols.fetch_context.RSS) mode = "prefer"
-		else mode = "onlyPreferSaved"
+	if (mode === "iweb") {
+		return fetchUserFromIWeb(username)
 	}
-	if (context === constants.symbols.fetch_context.ASSISTANT) {
-		const saved = db.prepare("SELECT username, user_id, updated_version, biography, post_count, following_count, followed_by_count, external_url, full_name, is_private, is_verified, profile_pic_url FROM Users WHERE username = ?").get(username)
-		if (saved && saved.updated_version >= 2) {
-			return fetchUserFromSaved(saved)
-		} else {
-			return fetchUserFromHTML(username)
-		}
-	}
-	if (mode === "never") {
-		return fetchUserFromHTML(username)
-	}
-	if (mode === "prefer") {
-		const saved = db.prepare("SELECT username, user_id, updated_version, biography, post_count, following_count, followed_by_count, external_url, full_name, is_private, is_verified, profile_pic_url FROM Users WHERE username = ?").get(username)
-		if (saved && saved.updated_version >= 2) {
-			return fetchUserFromSaved(saved)
-		} else if (saved && saved.updated_version === 1) {
-			return fetchUserFromCombined(saved.user_id, saved.username)
-		} else {
-			return fetchUserFromHTML(username)
-		}
-	}
-	if (mode === "onlyPreferSaved") {
-		const saved = db.prepare("SELECT username, user_id, updated_version, biography, post_count, following_count, followed_by_count, external_url, full_name, is_private, is_verified, profile_pic_url FROM Users WHERE username = ?").get(username)
-		if (saved && saved.updated_version >= 2) {
-			return fetchUserFromSaved(saved)
-		} else {
-			mode = "fallback"
-		}
-	}
-	if (mode === "fallback") {
-		return fetchUserFromHTML(username).catch(error => {
-			if (error === constants.symbols.INSTAGRAM_DEMANDS_LOGIN || error === constants.symbols.RATE_LIMITED) {
-				const saved = db.prepare("SELECT username, user_id, updated_version, biography, post_count, following_count, followed_by_count, external_url, full_name, is_private, is_verified, profile_pic_url FROM Users WHERE username = ?").get(username)
-				if (saved && saved.updated_version === 1) {
-					return fetchUserFromCombined(saved.user_id, username)
-				} else if (saved && saved.updated_version >= 2) {
-					return fetchUserFromSaved(saved)
-				} else if (assistantSwitcher.enabled()) {
-					return assistantSwitcher.requestUser(username).catch(error => {
-						if (error === constants.symbols.NO_ASSISTANTS_AVAILABLE) throw constants.symbols.RATE_LIMITED
-						else throw error
-					})
-				}
-			}
-			throw error
-		})
-	}
-	throw new Error(`Selected fetch mode ${mode} was unmatched.`)
+
+	throw new Error(`Your instance admin selected fetch mode ${mode}, which is now unsupported. Please use "iweb" instead (the default).`)
 }
 
 /**
  * @param {string} username
  * @returns {Promise<{user: import("./structures/User"), quotaUsed: number}>}
  */
-function fetchUserFromHTML(username) {
+function fetchUserFromIWeb(username) {
 	const blockedCacheConfig = constants.caching.self_blocked_status.user_html
 	if (blockedCacheConfig) {
 		if (history.store.has("user")) {
@@ -99,56 +52,44 @@ function fetchUserFromHTML(username) {
 	let quotaUsed = 0
 	return userRequestCache.getOrFetch("user/"+username, false, true, () => {
 		quotaUsed++
-		return switcher.request("user_html", `https://www.instagram.com/${username}/feed/`, async res => {
+		const params = new URLSearchParams({username})
+		return switcher.request("user_html", `https://i.instagram.com/api/v1/users/web_profile_info/?${params}`, async res => {
 			if (res.status === 301) throw constants.symbols.ENDPOINT_OVERRIDDEN
 			if (res.status === 302) throw constants.symbols.INSTAGRAM_DEMANDS_LOGIN
 			if (res.status === 429) throw constants.symbols.RATE_LIMITED
 			return res
 		}).then(async g => {
 			const res = await g.response()
-			if (res.status === 404) {
-				throw constants.symbols.NOT_FOUND
-			} else {
-				const text = await g.text()
-				// require down here or have to deal with require loop. require cache will take care of it anyway.
-				// User -> Timeline -> TimelineEntry -> collectors -/> User
-				const User = require("./structures/User")
-				const result = extractSharedData(text)
-				if (result.status === constants.symbols.extractor_results.SUCCESS) {
-					const sharedData = result.value
-					const user = new User(sharedData.entry_data.ProfilePage[0].graphql.user)
-					history.report("user", true)
-					if (constants.caching.db_user_id) {
-						const existing = db.prepare("SELECT created, updated_version FROM Users WHERE username = ?").get(user.data.username)
-						db.prepare(
-							"REPLACE INTO Users (username,  user_id,  created,  updated,  updated_version,  biography,  post_count,  following_count,  followed_by_count,  external_url,  full_name,  is_private,  is_verified,  profile_pic_url) VALUES "
-							                 +"(@username, @user_id, @created, @updated, @updated_version, @biography, @post_count, @following_count, @followed_by_count, @external_url, @full_name, @is_private, @is_verified, @profile_pic_url)"
-						).run({
-							username: user.data.username,
-							user_id: user.data.id,
-							created: existing && existing.updated_version === constants.database_version ? existing.created : Date.now(),
-							updated: Date.now(),
-							updated_version: constants.database_version,
-							biography: user.data.biography || null,
-							post_count: user.posts || 0,
-							following_count: user.following || 0,
-							followed_by_count: user.followedBy || 0,
-							external_url: user.data.external_url || null,
-							full_name: user.data.full_name || null,
-							is_private: +user.data.is_private,
-							is_verified: +user.data.is_verified,
-							profile_pic_url: user.data.profile_pic_url
-						})
-					}
-					return user
-				} else if (result.status === constants.symbols.extractor_results.AGE_RESTRICTED) {
-					// I don't like this code.
-					history.report("user", true)
-					throw constants.symbols.extractor_results.AGE_RESTRICTED
-				} else {
-					throw result.status
-				}
+			const json = await g.json()
+			// require down here or have to deal with require loop. require cache will take care of it anyway.
+			// User -> Timeline -> TimelineEntry -> collectors -/> User
+			const User = require("./structures/User")
+			const user = new User(json.data.user)
+			history.report("user", true)
+			// sure, cache the user info. why not.
+			if (constants.caching.db_user_id) {
+				const existing = db.prepare("SELECT created, updated_version FROM Users WHERE username = ?").get(user.data.username)
+				db.prepare(
+					"REPLACE INTO Users (username,  user_id,  created,  updated,  updated_version,  biography,  post_count,  following_count,  followed_by_count,  external_url,  full_name,  is_private,  is_verified,  profile_pic_url) VALUES "
+						+"(@username, @user_id, @created, @updated, @updated_version, @biography, @post_count, @following_count, @followed_by_count, @external_url, @full_name, @is_private, @is_verified, @profile_pic_url)"
+				).run({
+					username: user.data.username,
+					user_id: user.data.id,
+					created: existing && existing.updated_version === constants.database_version ? existing.created : Date.now(),
+					updated: Date.now(),
+					updated_version: constants.database_version,
+					biography: user.data.biography || null,
+					post_count: user.posts || 0,
+					following_count: user.following || 0,
+					followed_by_count: user.followedBy || 0,
+					external_url: user.data.external_url || null,
+					full_name: user.data.full_name || null,
+					is_private: +user.data.is_private,
+					is_verified: +user.data.is_verified,
+					profile_pic_url: user.data.profile_pic_url
+				})
 			}
+			return user
 		}).catch(error => {
 			if (error === constants.symbols.INSTAGRAM_DEMANDS_LOGIN || error === constants.symbols.RATE_LIMITED) {
 				history.report("user", false, error)
@@ -236,36 +177,6 @@ function fetchUserFromCombined(userID, username) {
 			history.report("reel", false, error)
 		}
 		throw error
-	})
-}
-
-function fetchUserFromSaved(saved) {
-	let quotaUsed = 0
-	return userRequestCache.getOrFetch("user/"+saved.username, false, true, async () => {
-		// require down here or have to deal with require loop. require cache will take care of it anyway.
-		// ReelUser -> Timeline -> TimelineEntry -> collectors -/> ReelUser
-		const ReelUser = require("./structures/ReelUser")
-		const user = new ReelUser({
-			username: saved.username,
-			id: saved.user_id,
-			biography: saved.biography,
-			edge_follow: {count: saved.following_count},
-			edge_followed_by: {count: saved.followed_by_count},
-			external_url: saved.external_url,
-			full_name: saved.full_name,
-			is_private: !!saved.is_private,
-			is_verified: !!saved.is_verified,
-			profile_pic_url: saved.profile_pic_url
-		})
-		// Add first timeline page
-		if (!user.timeline.pages[0]) {
-			const {result: page, fromCache} = await fetchTimelinePage(user.data.id, "")
-			if (!fromCache) quotaUsed++
-			user.timeline.addPage(page)
-		}
-		return user
-	}).then(user => {
-		return {user, quotaUsed}
 	})
 }
 
@@ -548,6 +459,5 @@ module.exports.timelineEntryCache = timelineEntryCache
 module.exports.getOrFetchShortcode = getOrFetchShortcode
 module.exports.updateProfilePictureFromReel = updateProfilePictureFromReel
 module.exports.history = history
-module.exports.fetchUserFromSaved = fetchUserFromSaved
 module.exports.assistantSwitcher = assistantSwitcher
 module.exports.verifyUserPair = verifyUserPair

@@ -102,9 +102,8 @@ html(dir=ll.meta_direction, lang=settings.language)
 
 					+checkbox("spa", ll.fast_navigation, ll.t_enabled, false)
 
-					+select("infinite_scroll", ll.infinite_scroll, true, [
+					+select("infinite_scroll", ll.infinite_scroll, false, [
 						{value: "normal", text: ll.t_normal},
-						{value: "eager", text: ll.t_eager},
 						{value: "off", text: ll.t_manual}
 					])
 

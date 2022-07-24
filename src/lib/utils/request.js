@@ -4,7 +4,12 @@ const SavedRequestManager = require("./saved_requests/manager")
 
 const constants = require("../constants")
 
-const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
+const userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0"
+
+const headers = {
+	"User-Agent": userAgent,
+	"X-IG-App-ID": 936619743392459 // needed for profile iweb to work
+}
 
 const backendStatusLineMap = new Map([
 	["node-fetch", "NF "],
@@ -23,16 +28,12 @@ function request(url, options = {}, settings = {}) {
 
 	if (constants.request_backend === "node-fetch") {
 		return new NodeFetch(url, Object.assign({
-			headers: {
-				"User-Agent": userAgent
-			},
+			headers,
 			redirect: "manual"
 		}, options))
 	} else if (constants.request_backend === "got") {
 		return new Got(url, Object.assign({
-			headers: {
-				"User-Agent": userAgent
-			},
+			headers,
 			followRedirect: false,
 			throwHttpErrors: false
 		}, options))
