@@ -224,12 +224,8 @@ let constants = {
 		self_blocked_status: {
 			user_html: {
 				enabled: true,
-				time: 2*60*60*1000
+				time: 60*60*1000
 			},
-			timeline_graphql: {
-				enabled: true,
-				time: 2*60*60*1000
-			}
 		},
 		db_user_id: true,
 		db_post_n3: false,
