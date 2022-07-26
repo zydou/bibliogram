@@ -8,6 +8,17 @@ const db = require("../../lib/db")
 
 module.exports = [
 	{
+		route: "/settings.json", methods: ["GET"], code: async ({req, url}) => {
+			const token = getToken(req)
+			const settings = getSettings(req)
+			return {
+				statusCode: 200,
+				contentType: "application/json",
+				content: settings
+			}
+		}
+	},
+	{
 		route: "/settings", methods: ["GET"], code: async ({req, url}) => {
 			const token = getToken(req)
 			const settings = getSettings(req)
