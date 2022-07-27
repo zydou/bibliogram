@@ -49,7 +49,7 @@ async function proxyResource(url, suggestedHeaders = {}, refreshCallback = null)
 
 module.exports = [
 	{
-		route: "/imageproxy", methods: ["GET"], code: async (input) => {
+		route: "/imageproxy(/.*)?", methods: ["GET"], code: async (input) => {
 			const verifyResult = verifyURL(input.url)
 			if (verifyResult.status !== "ok") return verifyResult.value
 			if (!["png", "jpg", "webp"].some(ext => verifyResult.url.pathname.endsWith(ext))) return [400, "URL extension is not allowed"]
@@ -119,7 +119,7 @@ module.exports = [
 		}
 	},
 	{
-		route: "/videoproxy", methods: ["GET"], code: async (input) => {
+		route: "/videoproxy(/.*)?", methods: ["GET"], code: async (input) => {
 			const verifyResult = verifyURL(input.url)
 			if (verifyResult.status !== "ok") return verifyResult.value
 			const url = verifyResult.url

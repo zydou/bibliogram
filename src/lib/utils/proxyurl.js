@@ -26,11 +26,12 @@ function verifyURL(completeURL) {
 	return {status: "ok", url}
 }
 
-function proxyImage(url, width) {
+function proxyImage(url, width, shortcode) {
+	shortcode = shortcode ? `/${shortcode}${width ? "-small" : ""}.jpg` : ""
 	const params = new URLSearchParams()
 	if (width) params.set("width", width)
 	params.set("url", url)
-	return "/imageproxy?"+params.toString()
+	return `/imageproxy${shortcode}?${params.toString()}`
 }
 
 function proxyProfilePic(url, userID) {
@@ -40,10 +41,11 @@ function proxyProfilePic(url, userID) {
 	return "/imageproxy?"+params.toString()
 }
 
-function proxyVideo(url) {
+function proxyVideo(url, shortcode) {
+	shortcode = shortcode ? `/${shortcode}.jpg` : ""
 	const params = new URLSearchParams()
 	params.set("url", url)
-	return "/videoproxy?"+params.toString()
+	return `/videoproxy${shortcode}?${params.toString()}`
 }
 
 /**

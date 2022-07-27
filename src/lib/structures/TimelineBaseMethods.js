@@ -27,13 +27,13 @@ class TimelineBaseMethods {
 
 	getDisplayUrlP() {
 		let url = this.data.display_url
-		if (constants.proxy_media.image) url = proxyImage(url)
+		if (constants.proxy_media.image) url = proxyImage(url, null, this.data.shortcode)
 		return url
 	}
 
 	getVideoUrlP() {
 		let url = this.data.video_url
-		if (constants.proxy_media.video) url = proxyVideo(url)
+		if (constants.proxy_media.video) url = proxyVideo(url, this.data.shortcode)
 		return url
 	}
 
