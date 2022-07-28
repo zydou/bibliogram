@@ -1,12 +1,12 @@
 const constants = require("./constants")
 const {request} = require("./utils/request")
 const switcher = require("./utils/torswitcher")
-const {extractSharedData} = require("./utils/body")
+const {extractPreloader} = require("./utils/body")
 const {TtlCache, RequestCache, UserRequestCache} = require("./cache")
 const RequestHistory = require("./structures/RequestHistory")
 const fhp = require("fast-html-parser")
 const db = require("./db")
-require("./testimports")(constants, request, extractSharedData, UserRequestCache, RequestHistory, db)
+require("./testimports")(constants, request, extractPreloader, UserRequestCache, RequestHistory, db)
 
 const requestCache = new RequestCache(constants.caching.resource_cache_time)
 /** @type {import("./cache").UserRequestCache<import("./structures/User")|import("./structures/ReelUser")>} */
@@ -30,9 +30,82 @@ async function fetchUser(username, context) {
 	let mode = constants.allow_user_from_reel
 	if (mode === "iweb") {
 		return fetchUserFromIWeb(username)
+	} else if (mode === "html") {
+		return fetchUserFromHTML(username)
 	}
 
 	throw new Error(`Your instance admin selected fetch mode ${mode}, which is now unsupported. Please use "iweb" instead (the default).`)
+}
+
+/**
+ * @param {string} username
+ * @returns {Promise<{user: import("./structures/User"), quotaUsed: number}>}
+ */
+function fetchUserFromHTML(username) {
+	const blockedCacheConfig = constants.caching.self_blocked_status.user_html
+	if (blockedCacheConfig) {
+		if (history.store.has("user")) {
+			const entry = history.store.get("user")
+			if (!entry.lastRequestSuccessful && Date.now() < entry.lastRequestAt + blockedCacheConfig.time) {
+				return Promise.reject(entry.kind || constants.symbols.RATE_LIMITED)
+			}
+		}
+	}
+	let quotaUsed = 0
+	return userRequestCache.getOrFetch("user/"+username, false, true, () => {
+		quotaUsed++
+		return switcher.request("user_html", `https://www.instagram.com/${username}/feed/`, async res => {
+			if (res.status === 301) throw constants.symbols.ENDPOINT_OVERRIDDEN
+			if (res.status === 302) throw constants.symbols.INSTAGRAM_DEMANDS_LOGIN
+			if (res.status === 429) throw constants.symbols.RATE_LIMITED
+			return res
+		}).then(async g => {
+			const res = await g.response()
+			if (res.status === 404) {
+				throw constants.symbols.NOT_FOUND
+			} else {
+				const text = await g.text()
+				// require down here or have to deal with require loop. require cache will take care of it anyway.
+				// User -> Timeline -> TimelineEntry -> collectors -/> User
+				const User = require("./structures/User")
+				const preloader = extractPreloader(text)
+				const profileInfoResponse = preloader.find(x => x.request.url === "/api/v1/users/web_profile_info/")
+				if (!profileInfoResponse) {
+					throw new Error("No profile info in the preloader.")
+				}
+				const user = new User(JSON.parse(profileInfoResponse.result.response).data.user)
+				history.report("user", true)
+				if (constants.caching.db_user_id) {
+					const existing = db.prepare("SELECT created, updated_version FROM Users WHERE username = ?").get(user.data.username)
+					db.prepare(
+						"REPLACE INTO Users (username,  user_id,  created,  updated,  updated_version,  biography,  post_count,  following_count,  followed_by_count,  external_url,  full_name,  is_private,  is_verified,  profile_pic_url) VALUES "
+							+"(@username, @user_id, @created, @updated, @updated_version, @biography, @post_count, @following_count, @followed_by_count, @external_url, @full_name, @is_private, @is_verified, @profile_pic_url)"
+					).run({
+						username: user.data.username,
+						user_id: user.data.id,
+						created: existing && existing.updated_version === constants.database_version ? existing.created : Date.now(),
+						updated: Date.now(),
+						updated_version: constants.database_version,
+						biography: user.data.biography || null,
+						post_count: user.posts || 0,
+						following_count: user.following || 0,
+						followed_by_count: user.followedBy || 0,
+						external_url: user.data.external_url || null,
+						full_name: user.data.full_name || null,
+						is_private: +user.data.is_private,
+						is_verified: +user.data.is_verified,
+						profile_pic_url: user.data.profile_pic_url
+					})
+				}
+				return user
+			}
+		}).catch(error => {
+			if (error === constants.symbols.INSTAGRAM_DEMANDS_LOGIN || error === constants.symbols.RATE_LIMITED) {
+				history.report("user", false, error)
+			}
+			throw error
+		})
+	}).then(user => ({user, quotaUsed}))
 }
 
 /**

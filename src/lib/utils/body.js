@@ -31,6 +31,23 @@ function extractSharedData(text) {
 
 /**
  * @param {string} text
+ * @returns {any}
+ */
+function extractPreloader(text) {
+	const entries = []
+	const parser = new Parser(text)
+	while (parser.seek('{"require":[["PolarisQueryPreloaderCache"', {moveToMatch: true, useEnd: true}) !== -1) {
+		if (parser.seek('{"complete":', {moveToMatch: true, useEnd: false}) !== -1) {
+			let details = parser.get({split: ',"status_code":'}) + "}}"
+			let data = JSON.parse(details)
+			entries.push(data)
+		}
+	}
+	return entries
+}
+
+/**
+ * @param {string} text
  */
 function getRestrictedAge(text) {
 	const parser = new Parser(text)
@@ -45,3 +62,4 @@ function getRestrictedAge(text) {
 }
 
 module.exports.extractSharedData = extractSharedData
+module.exports.extractPreloader = extractPreloader

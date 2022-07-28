@@ -8,7 +8,8 @@ const userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:102.0) Gecko/20100
 
 const headers = {
 	"User-Agent": userAgent,
-	"X-IG-App-ID": 936619743392459 // needed for profile iweb to work
+	"X-IG-App-ID": "936619743392459", // needed for profile iweb to work
+	"Sec-Fetch-Mode": "navigate", // needed for profile html to work
 }
 
 const backendStatusLineMap = new Map([

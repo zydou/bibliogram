@@ -41,7 +41,7 @@ let constants = {
 	// change this to `true` to serve it, which will make extensions like Privacy Badger automatically whitelist the domain.
 	does_not_track: false,
 
-	allow_user_from_reel: "iweb", // legacy. this must be "iweb" now.
+	allow_user_from_reel: "html", // "iweb" or "html", whichever one works for you
 	proxy_media: { // Whether to proxy media (images, videos, thumbnails) through Bibliogram. This is strongly recommended to protect user privacy. If proxy is turned off, some browser content blockers may break all images since they are served from Facebook domains.
 		image: true,
 		video: true,
@@ -223,7 +223,7 @@ let constants = {
 		csrf_time: 60*60*1000,
 		self_blocked_status: {
 			user_html: {
-				enabled: true,
+				enabled: false, // enable this if you're using iweb method AND a high traffic instance
 				time: 60*60*1000
 			},
 		},
