@@ -42,7 +42,7 @@ function proxyProfilePic(url, userID) {
 }
 
 function proxyVideo(url, shortcode) {
-	shortcode = shortcode ? `/${shortcode}.jpg` : ""
+	shortcode = shortcode ? `/${shortcode}.mp4` : ""
 	const params = new URLSearchParams()
 	params.set("url", url)
 	return `/videoproxy${shortcode}?${params.toString()}`
