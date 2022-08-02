@@ -4,6 +4,8 @@ const constants = require("../constants")
 const {request} = require("./request")
 const {RequestCache} = require("../cache")
 
+let circuitIndex = 0
+
 class TorManager {
 	/**
 	 * @param {import("@deadcanaries/granax/lib/controller")} tor
@@ -20,12 +22,16 @@ class TorManager {
 		let done = false
 		let g
 		while (!done) {
+			const circuitIndexUsed = circuitIndex
 			g = await request(url, {agent: this.agent}, {log: true, statusLine: "TOR"})
 			try {
 				await g.check(test)
 				break
 			} catch (e) {
-				await this.newCircuit()
+				if (circuitIndexUsed === circuitIndex) {
+					circuitIndex++
+					await this.newCircuit()
+				}
 			}
 		}
 		return g
