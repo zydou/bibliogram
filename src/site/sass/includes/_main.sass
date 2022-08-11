@@ -15,10 +15,7 @@ $theme: () !default
 		src: url(/static/fonts/cantarell-#{$weight}.otf) format("opentype")
 		font-display: swap // prefer a fallback font until the font file is loaded
 
-body
-	font-family: "Bariol", sans-serif
-
-body.use-boring-font
+body, body.use-boring-font
 	// this is useful so that cyrillic and other scripts don't look conspicuous compared to nearby latin letters.
 	// the use-boring-font class is activated based on the page and heuristics of its contents
 	font-family: "Cantarell", sans-serif
