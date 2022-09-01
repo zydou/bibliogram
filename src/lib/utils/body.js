@@ -1,6 +1,16 @@
 const constants = require("../constants")
 const {Parser} = require("./parser/parser")
 
+function selectExtractor(text) {
+	if (text.includes("window._sharedData = ")) {
+		return extractSharedData(text)
+	} else if (text.includes("PolarisQueryPreloaderCache")) {
+		return extractPreloader(text)
+	} else {
+		throw constants.symbols.extractor_results.NO_SHARED_DATA
+	}
+}
+
 /**
  * @param {string} text
  * @returns {{status: symbol, value: any}}
@@ -12,21 +22,22 @@ function extractSharedData(text) {
 		// Maybe the profile is age restricted?
 		const age = getRestrictedAge(text)
 		if (age !== null) { // Correct.
-			return {status: constants.symbols.extractor_results.AGE_RESTRICTED, value: age}
+			throw constants.symbols.extractor_results.AGE_RESTRICTED
 		}
-		return {status: constants.symbols.extractor_results.NO_SHARED_DATA, value: null}
+		throw constants.symbols.extractor_results.NO_SHARED_DATA
 	}
 	parser.store()
 	const end = parser.seek(";</script>")
 	parser.restore()
 	const sharedDataString = parser.slice(end - parser.cursor)
 	const sharedData = JSON.parse(sharedDataString)
+	console.log(sharedData)
 	// check for alternate form of age restrictions
 	if (sharedData.entry_data && sharedData.entry_data.HttpGatedContentPage) {
-		// lazy fix; ideally extracting the age should be done here, but for the web ui it doesn't matter
-		return {status: constants.symbols.extractor_results.AGE_RESTRICTED, value: null}
+		// ideally extracting the age should be done here, but for the web ui it doesn't matter
+		throw constants.symbols.extractor_results.AGE_RESTRICTED
 	}
-	return {status: constants.symbols.extractor_results.SUCCESS, value: sharedData}
+	return sharedData.entry_data.ProfilePage[0].graphql.user
 }
 
 /**
@@ -43,7 +54,12 @@ function extractPreloader(text) {
 			entries.push(data)
 		}
 	}
-	return entries
+	// entries now has the things
+	const profileInfoResponse = entries.find(x => x.request.url === "/api/v1/users/web_profile_info/")
+	if (!profileInfoResponse) {
+		throw new Error("No profile info in the preloader.")
+	}
+	return JSON.parse(profileInfoResponse.result.response).data.user
 }
 
 /**
@@ -61,5 +77,6 @@ function getRestrictedAge(text) {
 	return +match[1] // the age
 }
 
+module.exports.selectExtractor = selectExtractor
 module.exports.extractSharedData = extractSharedData
 module.exports.extractPreloader = extractPreloader

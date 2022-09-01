@@ -1,12 +1,12 @@
 const constants = require("./constants")
 const {request} = require("./utils/request")
 const switcher = require("./utils/torswitcher")
-const {extractPreloader} = require("./utils/body")
+const {selectExtractor} = require("./utils/body")
 const {TtlCache, RequestCache, UserRequestCache} = require("./cache")
 const RequestHistory = require("./structures/RequestHistory")
 const fhp = require("fast-html-parser")
 const db = require("./db")
-require("./testimports")(constants, request, extractPreloader, UserRequestCache, RequestHistory, db)
+require("./testimports")(constants, request, selectExtractor, UserRequestCache, RequestHistory, db)
 
 const requestCache = new RequestCache(constants.caching.resource_cache_time)
 /** @type {import("./cache").UserRequestCache<import("./structures/User")|import("./structures/ReelUser")>} */
@@ -34,7 +34,7 @@ async function fetchUser(username, context) {
 		return fetchUserFromHTML(username)
 	}
 
-	throw new Error(`Your instance admin selected fetch mode ${mode}, which is now unsupported. Please use "iweb" instead (the default).`)
+	throw new Error(`Your instance admin selected fetch mode ${mode}, which is now unsupported. Please ask them to use the default fetch mode by omitting that setting.`)
 }
 
 /**
@@ -68,12 +68,8 @@ function fetchUserFromHTML(username) {
 				// require down here or have to deal with require loop. require cache will take care of it anyway.
 				// User -> Timeline -> TimelineEntry -> collectors -/> User
 				const User = require("./structures/User")
-				const preloader = extractPreloader(text)
-				const profileInfoResponse = preloader.find(x => x.request.url === "/api/v1/users/web_profile_info/")
-				if (!profileInfoResponse) {
-					throw new Error("No profile info in the preloader.")
-				}
-				const user = new User(JSON.parse(profileInfoResponse.result.response).data.user)
+				const userData = selectExtractor(text)
+				const user = new User(userData)
 				history.report("user", true)
 				if (constants.caching.db_user_id) {
 					const existing = db.prepare("SELECT created, updated_version FROM Users WHERE username = ?").get(user.data.username)
