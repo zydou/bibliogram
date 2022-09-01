@@ -1,0 +1,12 @@
+include includes/error.pug
+
+doctype html
+html
+	head
+		title= `Only posts are available | Bibliogram`
+		include includes/head
+	body.error-page
+		+error(403, "Only posts are available", false)
+			| Bibliogram is discontinued.
+			| You can only view individual posts, not user profiles.
+			| #[a(href="https://cadence.moe/blog/2022-09-01-discontinuing-bibliogram") Nooo! Why discontinued?]

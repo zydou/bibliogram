@@ -665,14 +665,9 @@ body
 	.about-container
 		background-color: map-get($theme, "background-power-secondary")
 		color: map-get($theme, "foreground-power-secondary")
-		padding: 50px 0px
+		padding: 0px 0px 50px
 		flex: 1
 		min-height: 60vh
-
-		.notice
-			background-color: map-get($theme, "background-power-tertiary")
-			margin: 10px 0px
-			padding: 20px 0px 10px
 
 		.about
 			max-width: 700px
@@ -686,6 +681,11 @@ body
 
 			.link-list
 				color: map-get($theme, "link-power")
+
+		.notice
+			background-color: map-get($theme, "background-power-tertiary")
+			margin: 0px 0px 50px
+			padding: 20px 0px 10px
 
 	.featured-profiles
 		margin-bottom: 20px

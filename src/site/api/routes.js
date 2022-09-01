@@ -76,6 +76,8 @@ module.exports = [
 	},
 	{
 		route: `/u`, methods: ["GET"], code: async ({url}) => {
+			return render(403, "pug/posts_only.pug")
+
 			if (url.searchParams.has("u")) {
 				let username = url.searchParams.get("u")
 				username = username.replace(/^(https?:\/\/)?([a-z]+\.)?instagram\.com\//, "")
@@ -96,6 +98,8 @@ module.exports = [
 	},
 	{
 		route: `/u/(${constants.external.username_regex})(/channel)?`, methods: ["GET"], code: async ({req, url, fill}) => {
+			return render(403, "pug/posts_only.pug")
+
 			const username = fill[0]
 			const type = fill[1] ? "igtv" : "timeline"
 
